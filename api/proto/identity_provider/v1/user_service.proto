@@ -1,0 +1,412 @@
+syntax = "proto3";
+
+package identity_provider.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "identity_provider/v1/user.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/uniqelus/opentrade/api/gen/go/idp/v1;idp";
+option java_package = "com.opentrade.idp.v1";
+option java_multiple_files = true;
+
+// Global OpenAPI/Swagger settings
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "OpenTrade Identity Provider API"
+    version: "1.0"
+    description: "API for user management and authentication"
+    contact: {
+      name: "OpenTrade Team"
+      url: "https://opentrade.com"
+      email: "api@opentrade.com"
+    }
+    license: {
+      name: "Apache 2.0"
+      url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  }
+  schemes: HTTP
+  schemes: HTTPS
+  consumes: "application/json"
+  produces: "application/json"
+  security_definitions: {
+    security: {
+      key: "Bearer"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "JWT authentication token in format: Bearer {token}"
+      }
+    }
+  }
+  responses: {
+    key: "401"
+    value: {
+      description: "Unauthorized access. Bearer token is missing or invalid."
+    }
+  }
+  responses: {
+    key: "403"
+    value: {
+      description: "Access forbidden. Insufficient permissions to perform the operation."
+    }
+  }
+  responses: {
+    key: "500"
+    value: {
+      description: "Internal server error."
+    }
+  }
+};
+
+service UserService {
+  // Get user by resource name
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/v1/users/{name}"
+    };
+    option (google.api.method_signature) = "name";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get user"
+      description: "Returns user information by their unique resource name."
+      tags: "Users"
+      operation_id: "GetUser"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+      responses: {
+        key: "200"
+        value: {
+          description: "User successfully found and returned."
+        }
+      }
+      responses: {
+        key: "404"
+        value: {
+          description: "User with the specified resource name was not found."
+        }
+      }
+    };
+  }
+
+  // Get paginated list of users
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/users"
+    };
+    option (google.api.method_signature) = "";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List users"
+      description: "Returns a paginated list of all users in the system."
+      tags: "Users"
+      operation_id: "ListUsers"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+      responses: {
+        key: "200"
+        value: {
+          description: "User list successfully retrieved."
+        }
+      }
+    };
+  }
+
+  // Delete user
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/users/{name}"
+    };
+    option (google.api.method_signature) = "name";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete user"
+      description: "Permanently deletes a user from the system by their resource name."
+      tags: "Users"
+      operation_id: "DeleteUser"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+      responses: {
+        key: "204"
+        value: {
+          description: "User successfully deleted."
+        }
+      }
+      responses: {
+        key: "404"
+        value: {
+          description: "User with the specified resource name was not found."
+        }
+      }
+    };
+  }
+
+  // Create new user
+  rpc CreateUser(CreateUserRequest) returns (User) {
+    option (google.api.http) = {
+      post: "/v1/user"
+      body: "user"
+    };
+    option (google.api.method_signature) = "user";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Create user"
+      description: "Creates a new user in the system. Fields name, create_time, update_time, and status will be set automatically by the server."
+      tags: "Users"
+      operation_id: "CreateUser"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+      responses: {
+        key: "201"
+        value: {
+          description: "User successfully created."
+        }
+      }
+      responses: {
+        key: "400"
+        value: {
+          description: "Invalid input data (e.g., malformed email)."
+        }
+      }
+      responses: {
+        key: "409"
+        value: {
+          description: "User with this email already exists."
+        }
+      }
+    };
+  }
+
+  // Update existing user
+  rpc UpdateUser(UpdateUserRequest) returns (User) {
+    option (google.api.http) = {
+      post: "/v1/users"
+      body: "user"
+    };
+    option (google.api.method_signature) = "user,update_mask";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update user"
+      description: "Updates an existing user's data. Fields to be updated are specified in the update_mask."
+      tags: "Users"
+      operation_id: "UpdateUser"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+      responses: {
+        key: "200"
+        value: {
+          description: "User successfully updated."
+        }
+      }
+      responses: {
+        key: "400"
+        value: {
+          description: "Invalid input data or malformed update mask."
+        }
+      }
+      responses: {
+        key: "404"
+        value: {
+          description: "User not found."
+        }
+      }
+    };
+  }
+}
+
+// Request to get a user
+message GetUserRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "GetUserRequest"
+      description: "Request to get a user by resource name"
+    }
+  };
+
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {
+      type: "idp.opentrade.com/User"
+    },
+    (validate.rules).string = {
+      pattern: "^users/[^/]+$"
+      min_len: 7
+      max_len: 255
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User resource name in format users/{user_id}. Example: users/12345"
+      example: "\"users/12345\""
+      pattern: "^users/[^/]+$"
+      min_length: 7
+      max_length: 255
+    }
+  ];
+}
+
+// Request to get a list of users
+message ListUsersRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "ListUsersRequest"
+      description: "Request to get a paginated list of users"
+    }
+  };
+
+  int32 page_size = 1 [
+    (validate.rules).int32 = {
+      gte: 1
+      lte: 1000
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Maximum number of users to return per request. If not specified, a default value is used (typically 100). Maximum allowed value is 1000."
+      example: "100"
+      minimum: 1
+      maximum: 1000
+      default: "100"
+    }
+  ];
+
+  string page_token = 2 [
+    (validate.rules).string = {
+      max_len: 1024
+      pattern: "^[A-Za-z0-9-_+=/]*$"
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page token received from the next_page_token field of the previous response. Used to retrieve the next page of results."
+      example: "\"eyJvZmZzZXQiOjEwMH0=\""
+    }
+  ];
+}
+
+// Response with a list of users
+message ListUsersResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "ListUsersResponse"
+      description: "Response containing a list of users and a token for the next page"
+    }
+  };
+
+  repeated User users = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "List of users on the current page."
+    }
+  ];
+
+  string next_page_token = 2 [
+    (validate.rules).string = {
+      max_len: 1024
+      pattern: "^[A-Za-z0-9-_+=/]*$"
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Token for retrieving the next page. Empty value indicates this is the last page."
+      example: "\"eyJvZmZzZXQiOjIwMH0=\""
+      read_only: true
+    }
+  ];
+}
+
+// Request to delete a user
+message DeleteUserRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "DeleteUserRequest"
+      description: "Request to delete a user"
+    }
+  };
+
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {
+      type: "idp.opentrade.com/User"
+    },
+    (validate.rules).string = {
+      pattern: "^users/[^/]+$"
+      min_len: 7
+      max_len: 255
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User resource name in format users/{user_id}. Example: users/12345"
+      example: "\"users/12345\""
+      pattern: "^users/[^/]+$"
+      min_length: 7
+      max_length: 255
+    }
+  ];
+}
+
+// Request to create a user
+message CreateUserRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "CreateUserRequest"
+      description: "Request to create a new user"
+      required: ["user"]
+    }
+  };
+
+  User user = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (validate.rules).message = {
+      required: true
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Data for the user being created. Fields name, create_time, update_time, and status are ignored and will be set by the server."
+    }
+  ];
+}
+
+// Request to update a user
+message UpdateUserRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "UpdateUserRequest"
+      description: "Request to partially update a user"
+      required: ["user", "update_mask"]
+    }
+  };
+
+  User user = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (validate.rules).message = {
+      required: true
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Updated user data. Must contain the name field for resource identification."
+    }
+  ];
+
+  google.protobuf.FieldMask update_mask = 2 [
+    (validate.rules).message = {
+      required: true
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Mask of fields to be updated. Example: \"first_name,last_name,email\". Fields not specified in the mask will not be changed, even if present in the user object."
+      example: "\"first_name,last_name\""
+      pattern: "^(first_name|last_name|email)(,(first_name|last_name|email))*$"
+    }
+  ];
+}

@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package identity_provider.v1;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/uniqelus/opentrade/api/gen/go/idp/v1;idp";
+option java_package = "com.opentrade.idp.v1";
+option java_multiple_files = true;
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "OpenTrade Identity Provider API"
+    version: "1.0"
+    description: "API for user management and authentication"
+    contact: {
+      name: "OpenTrade Team"
+      url: "https://opentrade.com"
+      email: "api@opentrade.com"
+    }
+    license: {
+      name: "Apache 2.0"
+      url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  }
+  schemes: HTTP
+  schemes: HTTPS
+  consumes: "application/json"
+  produces: "application/json"
+  security_definitions: {
+    security: {
+      key: "Bearer"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "JWT authentication token in format: Bearer {token}"
+      }
+    }
+  }
+};
+
+message User {
+  option (google.api.resource) = {
+    type: "idp.opentrade.com/User"
+    pattern: "users/{user}"
+    singular: "user"
+    plural: "users"
+  };
+  
+  // OpenAPI schema description
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "User"
+      description: "System user"
+      required: ["email"]
+    }
+  };
+
+  string name = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (validate.rules).string = {
+      pattern: "^users/[^/]+$"
+      min_len: 7
+      max_len: 255
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Full resource name in format users/{user_id}"
+      example: "\"users/12345\""
+      read_only: true
+    }
+  ];
+
+  google.protobuf.Timestamp create_time = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User creation time"
+      example: "\"2024-01-15T10:30:00Z\""
+      read_only: true
+    }
+  ];
+
+  google.protobuf.Timestamp update_time = 3 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Last update time"
+      example: "\"2024-01-20T14:45:00Z\""
+      read_only: true
+    }
+  ];
+
+  string first_name = 4 [
+    (validate.rules).string = {
+      min_len: 1
+      max_len: 100
+      pattern: "^[\\p{L}][\\p{L} '\\-\\.]*$"
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's first name"
+      example: "\"John\""
+      max_length: 100
+    }
+  ];
+
+  string last_name = 5 [
+    (validate.rules).string = {
+      min_len: 1
+      max_len: 100
+      pattern: "^[\\p{L}][\\p{L} '\\-\\.]*$"
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's last name"
+      example: "\"Doe\""
+      max_length: 100
+    }
+  ];
+
+  string email = 6 [
+    (google.api.field_behavior) = REQUIRED,
+    (validate.rules).string = {
+      email: true
+      max_len: 255
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's email address"
+      example: "\"john.doe@example.com\""
+      format: "email"
+      max_length: 255
+    }
+  ];
+
+  UserStatus status = 10 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (validate.rules).enum = {
+      defined_only: true
+    },
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Current account status"
+      read_only: true
+    }
+  ];
+}
+
+enum UserStatus {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_enum) = {
+    description: "User account status"
+  };
+  
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_SUSPENDED = 2;
+  USER_STATUS_LOCKED = 3;
+}
