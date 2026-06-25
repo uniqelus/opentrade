@@ -1,0 +1,456 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "OpenTrade Identity Provider API",
+    "description": "API for user management and authentication",
+    "version": "1.0",
+    "contact": {
+      "name": "OpenTrade Team",
+      "url": "https://opentrade.com",
+      "email": "api@opentrade.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "tags": [
+    {
+      "name": "UserService"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/user": {
+      "post": {
+        "summary": "Create user",
+        "description": "Creates a new user in the system. Fields name, create_time, update_time, and status will be set automatically by the server.",
+        "operationId": "CreateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          },
+          "201": {
+            "description": "User successfully created.",
+            "schema": {}
+          },
+          "400": {
+            "description": "Invalid input data (e.g., malformed email).",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized access. Bearer token is missing or invalid.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Access forbidden. Insufficient permissions to perform the operation.",
+            "schema": {}
+          },
+          "409": {
+            "description": "User with this email already exists.",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "summary": "List users",
+        "description": "Returns a paginated list of all users in the system.",
+        "operationId": "ListUsers",
+        "responses": {
+          "200": {
+            "description": "User list successfully retrieved.",
+            "schema": {
+              "$ref": "#/definitions/v1ListUsersResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized access. Bearer token is missing or invalid.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Access forbidden. Insufficient permissions to perform the operation.",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "description": "Maximum number of users to return per request. If not specified, a default value is used (typically 100). Maximum allowed value is 1000.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32",
+            "default": "100"
+          },
+          {
+            "name": "pageToken",
+            "description": "Page token received from the next_page_token field of the previous response. Used to retrieve the next page of results.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Update user",
+        "description": "Updates an existing user's data. Fields to be updated are specified in the update_mask.",
+        "operationId": "UpdateUser",
+        "responses": {
+          "200": {
+            "description": "User successfully updated.",
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          },
+          "400": {
+            "description": "Invalid input data or malformed update mask.",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized access. Bearer token is missing or invalid.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Access forbidden. Insufficient permissions to perform the operation.",
+            "schema": {}
+          },
+          "404": {
+            "description": "User not found.",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          },
+          {
+            "name": "updateMask",
+            "description": "Mask of fields to be updated. Example: \"first_name,last_name,email\". Fields not specified in the mask will not be changed, even if present in the user object.",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "pattern": "^(first_name|last_name|email)(,(first_name|last_name|email))*$"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/users/{name}": {
+      "get": {
+        "summary": "Get user",
+        "description": "Returns user information by their unique resource name.",
+        "operationId": "GetUser",
+        "responses": {
+          "200": {
+            "description": "User successfully found and returned.",
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          },
+          "401": {
+            "description": "Unauthorized access. Bearer token is missing or invalid.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Access forbidden. Insufficient permissions to perform the operation.",
+            "schema": {}
+          },
+          "404": {
+            "description": "User with the specified resource name was not found.",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "User resource name in format users/{user_id}. Example: users/12345",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete user",
+        "description": "Permanently deletes a user from the system by their resource name.",
+        "operationId": "DeleteUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "204": {
+            "description": "User successfully deleted.",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized access. Bearer token is missing or invalid.",
+            "schema": {}
+          },
+          "403": {
+            "description": "Access forbidden. Insufficient permissions to perform the operation.",
+            "schema": {}
+          },
+          "404": {
+            "description": "User with the specified resource name was not found.",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "User resource name in format users/{user_id}. Example: users/12345",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1User"
+          },
+          "description": "List of users on the current page."
+        },
+        "nextPageToken": {
+          "type": "string",
+          "example": "eyJvZmZzZXQiOjIwMH0=",
+          "description": "Token for retrieving the next page. Empty value indicates this is the last page.",
+          "readOnly": true
+        }
+      },
+      "description": "Response containing a list of users and a token for the next page",
+      "title": "ListUsersResponse"
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "users/12345",
+          "description": "Full resource name in format users/{user_id}",
+          "readOnly": true
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-01-15T10:30:00Z",
+          "description": "User creation time",
+          "readOnly": true
+        },
+        "updateTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-01-20T14:45:00Z",
+          "description": "Last update time",
+          "readOnly": true
+        },
+        "firstName": {
+          "type": "string",
+          "example": "John",
+          "description": "User's first name",
+          "maxLength": 100
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Doe",
+          "description": "User's last name",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "john.doe@example.com",
+          "description": "User's email address",
+          "maxLength": 255
+        },
+        "status": {
+          "$ref": "#/definitions/v1UserStatus",
+          "description": "Current account status",
+          "readOnly": true
+        }
+      },
+      "description": "System user",
+      "title": "User",
+      "required": [
+        "email"
+      ]
+    },
+    "v1UserStatus": {
+      "type": "string",
+      "enum": [
+        "USER_STATUS_UNSPECIFIED",
+        "USER_STATUS_ACTIVE",
+        "USER_STATUS_SUSPENDED",
+        "USER_STATUS_LOCKED"
+      ],
+      "default": "USER_STATUS_UNSPECIFIED",
+      "description": "User account status"
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "description": "JWT authentication token in format: Bearer {token}",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}
