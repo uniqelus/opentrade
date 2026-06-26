@@ -8,4 +8,9 @@ import (
 type Config struct {
 	Log        sdklog.LogConfig     `yaml:"log"`
 	GRPCServer sdkgrpc.ServerConfig `yaml:"grpc_server"`
+	Database   DatabaseConfig       `yaml:"database"`
+}
+
+type DatabaseConfig struct {
+	DSN string `yaml:"dsn" env:"DATABASE_DSN" env-required:"true"`
 }

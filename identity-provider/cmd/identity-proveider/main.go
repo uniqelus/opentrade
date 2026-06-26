@@ -6,9 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/uniqelus/opentrade/identity-provider/internal/app"
 	sdkconfig "github.com/uniqelus/opentrade/sdk/go/config"
 	sdkerrors "github.com/uniqelus/opentrade/sdk/go/errors"
+
+	"github.com/uniqelus/opentrade/identity-provider/internal/app"
 )
 
 func main() {
